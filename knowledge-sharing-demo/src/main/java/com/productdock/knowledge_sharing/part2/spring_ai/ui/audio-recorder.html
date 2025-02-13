@@ -1,0 +1,69 @@
+<html lang="en">
+    <head>
+        <title>Recorder App</title>
+    </head>
+
+    <h2>Recorder App</h2>
+    <p>
+        <button type="button" id="record">Record</button>
+        <button type="button" id="stopRecord" disabled>Stop</button>
+    </p>
+    <p>
+        <audio id="recordedAudio"></audio>
+    </p>
+    <pre id="result-container"></pre>
+
+    <script>
+        navigator.mediaDevices.getUserMedia({ audio:true })
+            .then(stream => { handlerFunction(stream) })
+
+        function handlerFunction(stream) {
+            rec = new MediaRecorder(stream);
+            rec.ondataavailable = e => {
+                audioChunks.push(e.data);
+                if (rec.state == "inactive"){
+                    let blob = new Blob(audioChunks, { type: 'audio/mp3' });
+                    recordedAudio.src = URL.createObjectURL(blob);
+                    recordedAudio.controls = true;
+                    recordedAudio.autoplay = false;
+
+                    action = prompt("Please specify: Transcript - T or Recommend - R");
+                    if (action.toLowerCase() == 't') {
+                        sendData('http://localhost:8080/api/v1/ai/transcript', blob);
+                    }
+                    else if (action.toLowerCase() == 'r') {
+                        sendData('http://localhost:8080/api/v1/ai/recommendation', blob);
+                    }
+                    else {
+                        document.getElementById("result-container").innerText = "Invalid action";
+                    }
+                }
+            }
+        }
+
+        async function sendData(url, data) {
+            const formData  = new FormData();
+            formData.append('recording', data);
+
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData
+            });
+
+            document.getElementById("result-container").innerText = JSON.stringify(JSON.parse(await response.text()), null, 2);
+        }
+
+        record.onclick = e => {
+            record.disabled = true;
+            stopRecord.disabled = false;
+            audioChunks = [];
+            rec.start();
+        }
+
+        stopRecord.onclick = e => {
+            record.disabled = false;
+            stopRecord.disabled = true;
+            rec.stop();
+        }
+    </script>
+</html>

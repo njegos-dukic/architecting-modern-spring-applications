@@ -1,0 +1,25 @@
+# Use root/root as user/password credentials
+version: '3.1'
+
+# docker-compose down --volumes
+
+services:
+  postgres:
+    container_name: postgres
+    build: .
+    restart: always
+    shm_size: 128mb
+    environment:
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: knowledge_sharing_demo
+    ports:
+      - "5432:5432"
+    volumes:
+      - "./init.sql:/docker-entrypoint-initdb.d/1.sql"
+
+  adminer:
+    container_name: adminer
+    image: adminer
+    restart: always
+    ports:
+      - "8081:8080"

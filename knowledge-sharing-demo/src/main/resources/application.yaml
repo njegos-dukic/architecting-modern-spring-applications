@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: "knowledge-sharing-demo"
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/knowledge_sharing_demo
+    username: postgres
+    password: root
+    driver-class-name: org.postgresql.Driver
+
+  # Part 1: Event Sourcing
+  modulith:
+    events:
+      republish-outstanding-events-on-restart: true
+      jdbc:
+        schema-initialization:
+          enabled: true
+
+  # Part 2: RAG
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+    vectorstore:
+      pgvector:
+        initialize-schema: true
+
+  servlet:
+    multipart:
+      max-file-size: 15MB
+      max-request-size: 15MB
+
+server:
+  port: 8080
+  servlet:
+    context-path: "/api/v1"
+
+springdoc:
+  swagger-ui:
+    use-root-path: true # http://localhost:8080/api/v1/swagger-ui/index.html
+
+
+
